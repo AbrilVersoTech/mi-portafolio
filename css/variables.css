@@ -1,0 +1,63 @@
+/* Reset global para consistencia entre navegadores */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    list-style: none; /* Quita los puntos/números de las listas en todo el sitio */
+    text-decoration: none; /* Elimina el subrayado de los enlaces por defecto */
+}
+
+:root {
+    /* Paleta inspirada en Brittany Chiang */
+    --color-fondo: #0a192f;
+    --color-fondo-secundario: #112240;
+    --color-acento: #64ffda; /* Cian neón */
+    --color-texto-titulos: #ccd6f6;
+    --color-texto-parrafos: #8892b0;
+    --color-blanco-puro: #ffffff;
+    
+    /* Fuentes y Medidas */
+    --fuente-base: 'Inter', system-ui, sans-serif;
+    /* Transición optimizada para menús y botones */
+    --transicion-suave: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+
+    /* Nuevas medidas para Responsive */
+    --ancho-maximo: 1600px;
+    --ancho-contenido: 1000px;
+
+    /* --- NUEVAS VARIABLES PARA TRANSICIÓN DE SECCIONES --- */
+    --desplazamiento-revelado: 30px;
+    --tiempo-revelado: 0.8s;
+}
+
+/* Ajuste base para mejorar la legibilidad en móviles */
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+@media (max-width: 768px) {
+    html {
+        font-size: 14px; /* Reduce ligeramente todo el escalado de la web en móviles */
+    }
+}
+
+/* =========================================================================
+   --- CLASES DE REVELADO (TRANSICIÓN ENTRE SECCIONES) ---
+   ========================================================================= */
+
+/* Clase base para todas las secciones que se van a revelar */
+.revelar {
+    opacity: 0;
+    transform: translateY(var(--desplazamiento-revelado));
+    transition: opacity var(--tiempo-revelado) ease-out, 
+                transform var(--tiempo-revelado) ease-out;
+    visibility: hidden;
+}
+
+/* Clase que activa la animación (controlada por JS) */
+.revelar.visible {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}

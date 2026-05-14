@@ -1,0 +1,14 @@
+/* --- ESTILOS SMART PARA PIE DE PÁGINA --- */
+@media (max-width: 768px) {
+    .seccion-pie-pagina {
+        padding: 40px 20px;
+    }
+
+    .redes-sociales-pie {
+        gap: 40px; /* Mayor separación para facilitar el clic táctil */
+    }
+
+    .creditos-pie {
+        font-size: 12px;
+    }
+}

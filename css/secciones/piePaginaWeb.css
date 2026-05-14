@@ -1,0 +1,42 @@
+/* --- ESTILOS WEB PARA PIE DE PÁGINA --- */
+.seccion-pie-pagina {
+    padding: 60px 0;
+    background-color: var(--color-fondo);
+    color: var(--color-texto-parrafos);
+    font-family: var(--fuente-base);
+}
+
+.contenedor-pie {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column; /* Coloca iconos sobre el texto */
+    align-items: center;
+    gap: 25px;
+}
+
+.redes-sociales-pie {
+    display: flex;
+    gap: 30px;
+}
+
+.enlace-red {
+    color: var(--color-texto-parrafos);
+    transition: var(--transicion-suave);
+}
+
+.enlace-red:hover {
+    color: var(--color-acento);
+    transform: translateY(-3px);
+}
+
+.creditos-pie {
+    font-size: 14px;
+    font-family: monospace;
+    letter-spacing: 1px;
+}
+
+.copyright {
+    color: var(--color-texto-titulos);
+    opacity: 0.8;
+}

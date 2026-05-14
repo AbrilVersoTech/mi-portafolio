@@ -1,0 +1,33 @@
+/* --- ESTILOS SMART PARA CONTACTO --- */
+@media (max-width: 768px) {
+    .seccion-contacto {
+        padding: 5px 0 60px 0;
+    }
+
+    .grupo-input {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .subtitulo-contacto {
+        font-size: 28px;
+    }
+
+    .boton-enviar-neon {
+        width: 100%;
+    }
+    
+    .estado-envio {
+        font-size: 12px;
+    }
+
+    /* --- WHATSAPP SMART --- */
+    .contenedor-whatsapp {
+        margin-top: 30px;
+    }
+
+    .svg-whatsapp {
+        width: 40px; /* Un poco más grande para el pulgar */
+        height: 40px;
+    }
+}

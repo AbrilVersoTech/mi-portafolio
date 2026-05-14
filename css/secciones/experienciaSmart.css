@@ -1,0 +1,87 @@
+/* --- ESTILOS SMART SINCRONIZADOS CON WEB --- */
+@media (max-width: 768px) {
+    .seccion-experiencia {
+        /* Ajuste de precisión: padding inferior en 0 para eliminar la brecha con Proyectos */
+        padding: 50px 0 0px 0; 
+    }
+
+    .galeria-experiencia {
+        flex-direction: column;
+        /* Reducción de altura mínima para evitar espacios vacíos en móvil */
+        min-height: auto;
+    }
+
+    /* Navegación horizontal en lugar de vertical */
+    .lista-pestanas {
+        display: flex;
+        overflow-x: auto;
+        width: calc(100% + 50px); /* Compensa el padding del contenedor */
+        margin-left: -25px;
+        padding-left: 25px;
+        margin-bottom: 20px; /* Reducido de 30px para compactar */
+        border-bottom: 2px solid var(--color-fondo-secundario);
+        scrollbar-width: none; /* Oculta scroll en Firefox */
+    }
+
+    .lista-pestanas::-webkit-scrollbar {
+        display: none; /* Oculta scroll en Chrome/Safari */
+    }
+
+    .boton-tab {
+        border-left: none;
+        border-bottom: 2px solid transparent;
+        text-align: center;
+        min-width: 120px;
+        justify-content: center;
+        padding: 0 15px;
+        height: 42px;
+    }
+
+    /* El indicador neón ahora es una barra horizontal inferior */
+    .indicador-movil {
+        top: auto;
+        bottom: -2px; /* Alineado con el borde inferior */
+        width: 120px;
+        height: 2px;
+        background-color: var(--color-acento);
+        /* Misma curva de animación Premium que en Web */
+        transition: transform 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
+    }
+
+    .paneles-contenido {
+        margin-left: 0;
+        padding: 0;
+    }
+
+    /* Sincronización del efecto de entrada del panel */
+    .panel-experiencia {
+        display: none;
+        animation: fadeIn 0.4s ease; /* Mismo efecto de suavizado que Web */
+    }
+
+    .panel-experiencia.visible {
+        display: block;
+    }
+
+    .cabecera-cargo {
+        font-size: 1.15rem;
+    }
+
+    .lista-logros li {
+        font-size: 1rem;
+        padding-left: 25px;
+        margin-bottom: 10px; /* Ajuste sutil para ganar espacio */
+    }
+}
+
+/* Sincronización de Keyframes (Deben estar disponibles para ambos) */
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(10px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}

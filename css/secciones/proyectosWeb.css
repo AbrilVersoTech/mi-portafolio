@@ -1,0 +1,95 @@
+/* --- ESTILOS WEB PARA PROYECTOS --- */
+.seccion-proyectos {
+    /* Eliminamos el padding superior para pegar la sección a la anterior */
+    padding: 0 0 80px 0; 
+    background-color: var(--color-fondo);
+    font-family: var(--fuente-base);
+}
+
+.contenedor-proyectos {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 25px;
+}
+
+.layout-proyectos {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    /* Reducción drástica del margen superior del layout */
+    margin-top: 10px; 
+}
+
+.lista-proyectos {
+    flex: 1;
+}
+
+.tarjeta-proyecto {
+    background-color: var(--color-fondo-secundario);
+    padding: 25px;
+    border-radius: 4px;
+    margin-bottom: 25px;
+    border: 1px solid transparent;
+    transition: var(--transicion-suave);
+}
+
+.tarjeta-proyecto:hover {
+    transform: translateY(-5px);
+    border-color: var(--color-acento);
+}
+
+.titulo-proyecto {
+    color: var(--color-texto-titulos);
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.desc-proyecto {
+    color: var(--color-texto-parrafos);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.tech-proyecto {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tech-proyecto span {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--color-acento);
+    background: rgba(100, 255, 218, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+/* Contenedor de la Esfera 3D */
+.contenedor-esfera {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1000px;
+    height: 450px;
+}
+
+.tagcloud-esfera {
+    position: relative;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+}
+
+.tag-item {
+    position: absolute;
+    color: var(--color-acento);
+    font-weight: 600;
+    font-family: var(--fuente-base);
+    white-space: nowrap;
+    font-size: 1.1rem;
+    transition: opacity 0.3s;
+    user-select: none;
+}

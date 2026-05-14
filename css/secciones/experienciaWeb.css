@@ -1,0 +1,135 @@
+/* --- ESTILOS WEB PARA EXPERIENCIA --- */
+.seccion-experiencia {
+    /* Ajuste de precisión: padding inferior en 0 para eliminar la brecha con Proyectos */
+    padding: 25px 0 0px 0; 
+    max-width: 1000px;
+    margin: 0 auto;
+    font-family: var(--fuente-base);
+}
+
+.contenedor-experiencia {
+    max-width: 1000px; /* Alineación perfecta con Sección 01 */
+    margin: 0 auto;
+    padding: 0 25px;
+}
+
+.titulo-seccion {
+    color: var(--color-texto-titulos);
+    font-size: clamp(26px, 5vw, 32px);
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    margin-bottom: 40px;
+}
+
+.numero-titulo {
+    color: var(--color-acento);
+    font-family: monospace;
+    margin-right: 12px;
+}
+
+.galeria-experiencia {
+    display: flex;
+    margin-top: 20px;
+    /* Reducido de 350px a 300px para evitar espacios vacíos innecesarios */
+    min-height: 300px;
+}
+
+/* Pestañas Verticales */
+.lista-pestanas {
+    position: relative;
+    width: max-content;
+    z-index: 3;
+}
+
+.boton-tab {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 42px;
+    padding: 0 20px 2px;
+    border-left: 2px solid var(--color-fondo-secundario);
+    background: transparent;
+    color: var(--color-texto-parrafos);
+    font-family: var(--fuente-base);
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    transition: var(--transicion-suave);
+    border-top: none; 
+    border-right: none; 
+    border-bottom: none;
+}
+
+.boton-tab:hover, .boton-tab.activo {
+    color: var(--color-acento);
+    background-color: var(--color-fondo-secundario);
+}
+
+/* El indicador neón vertical */
+.indicador-movil {
+    position: absolute;
+    top: 0; left: 0;
+    width: 2px; height: 42px;
+    background-color: var(--color-acento);
+    transition: transform 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
+    z-index: 10;
+}
+
+/* Paneles de Contenido */
+.paneles-contenido {
+    width: 100%;
+    margin-left: 25px;
+    padding: 10px 5px;
+}
+
+.panel-experiencia {
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.panel-experiencia.visible { display: block; }
+
+.cabecera-cargo {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--color-texto-titulos);
+    margin-bottom: 2px;
+}
+
+.resaltado-empresa { color: var(--color-acento); }
+
+.rango-fecha {
+    font-family: monospace;
+    font-size: 13px;
+    color: var(--color-texto-parrafos);
+    /* Reducido de 25px a 15px para compactar el contenido interno */
+    margin-bottom: 15px;
+}
+
+.lista-logros {
+    list-style: none;
+    padding: 0;
+}
+
+.lista-logros li {
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 12px;
+    color: var(--color-texto-parrafos);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    text-align: justify;
+}
+
+.lista-logros li::before {
+    content: "▹";
+    position: absolute;
+    left: 0;
+    color: var(--color-acento);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

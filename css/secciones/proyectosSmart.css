@@ -1,0 +1,30 @@
+/* --- ESTILOS SMART PARA PROYECTOS --- */
+@media (max-width: 768px) {
+    .layout-proyectos {
+        flex-direction: column;
+        /* Eliminamos margen superior para compactar al máximo */
+        margin-top: 0; 
+    }
+
+    .seccion-proyectos {
+        /* Padding superior en 0 para eliminar la brecha visual con sección 02 */
+        padding: 0 0 25px 0; 
+    }
+
+    .contenedor-esfera {
+        height: 300px; /* Altura de la esfera */
+        /* Se incrementa el margen para evitar que se superponga con la tarjeta anterior */
+        margin-top: 80px; 
+        margin-bottom: 40px;
+        /* Evita que el scroll del móvil interfiera al tocar la esfera */
+        touch-action: none; 
+    }
+
+    .tag-item {
+        font-size: 0.85rem;
+    }
+
+    .titulo-proyecto {
+        font-size: 1.1rem;
+    }
+}

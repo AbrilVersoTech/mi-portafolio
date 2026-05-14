@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSP Temporal para Debug: Permite scripts locales sin verificar hashes por ahora -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+    <title>Diego Abril | Portafolio</title>
+    
+    <!-- Importación de estilos modulares -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/inicio/bienvenida.css">
+    <link rel="stylesheet" href="css/componentes/transicion.css">
+</head>
+<body>
+
+    <main id="contenedor-principal">
+        <section class="seccion-bienvenida">
+            <div class="bloque-texto">
+                <p class="prefijo-saludo">Hola, mi nombre es</p>
+                <h1 class="nombre-destacado">Diego Abril.</h1>
+                <h2 class="especialidad-desarrollo">Construyo soluciones full-stack.</h2>
+                <div class="contenedor-accion">
+                    <!-- Botón limpio: la lógica de eventos se maneja en navegacion.js -->
+                    <button class="boton-primario" id="btn-proyectos">
+                        Ver mi trabajo <span class="icono-flecha">→</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Pantalla de carga para la transición modular -->
+    <div id="pantalla-carga" class="oculto">
+        <div class="contenedor-logo">
+            <svg id="logo-hex" viewBox="0 0 100 100">
+                <path class="trazo-hex" d="M50 5 L90 25 L90 75 L50 95 L10 75 L10 25 Z" />
+                <!-- Se reemplaza el path de la letra A por la referencia a tu archivo logo.svg -->
+                <image href="imagenes/logo.svg" x="25" y="25" width="50" height="50" class="logo-interno-img" />
+            </svg>
+        </div>
+    </div>
+
+    <!-- Gestión de lógica modular externa -->
+    <script src="js/modulos/navegacion.js"></script>
+</body>
+</html>

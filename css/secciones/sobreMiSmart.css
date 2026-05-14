@@ -1,0 +1,29 @@
+/* --- ESTILOS RESPONSIVOS PARA SOBRE MÍ --- */
+@media (max-width: 768px) {
+    .seccion-sobre-mi { 
+        padding-top: 15px; /* Reducido para acercar al encabezado/nav */
+        padding-bottom: 30px; /* Reducido significativamente para eliminar el espacio en blanco hacia la Sección 02 */
+    }
+    
+    .titulo-seccion {
+        margin-bottom: 20px; /* Menos espacio debajo del título principal */
+    }
+
+    .marco-foto-circular { 
+        width: 110px; 
+        height: 110px; 
+    }
+    
+    .texto-biografia p { 
+        font-size: 1rem; 
+        margin-bottom: 10px; /* Párrafos más juntos */
+    }
+
+    .subtitulo-tecnico { 
+        margin: 25px 0 15px 0; /* Reducción del espacio que precede a la cuadrícula de tecnologías */
+    }
+
+    .cuadricula-tecnologias {
+        gap: 15px; /* Iconos de tecnologías más compactos */
+    }
+}

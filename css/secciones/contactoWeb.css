@@ -1,0 +1,132 @@
+/* --- ESTILOS WEB PARA CONTACTO --- */
+.seccion-contacto {
+    padding: 10px 0 100px 0; /* Espaciado reducido al mínimo arriba */
+    max-width: 1000px;
+    margin: 0 auto;
+    font-family: var(--fuente-base);
+    text-align: center;
+}
+
+.contenedor-contacto {
+    padding: 0 25px;
+}
+
+.bloque-contacto {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.subtitulo-contacto {
+    font-size: clamp(30px, 6vw, 45px);
+    color: var(--color-texto-titulos);
+    margin-bottom: 20px;
+}
+
+.texto-contacto {
+    color: var(--color-texto-parrafos);
+    line-height: 1.8;
+    margin-bottom: 40px;
+}
+
+/* Estilos del Formulario */
+.formulario-contacto {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.grupo-input {
+    display: flex;
+    gap: 15px;
+}
+
+.formulario-contacto input, 
+.formulario-contacto textarea {
+    width: 100%;
+    padding: 15px;
+    background: var(--color-fondo-secundario);
+    border: 1px solid rgba(100, 255, 218, 0.1);
+    border-radius: 4px;
+    color: var(--color-texto-titulos);
+    font-family: var(--fuente-base);
+    transition: var(--transicion-suave);
+}
+
+.formulario-contacto input:focus, 
+.formulario-contacto textarea:focus {
+    outline: none;
+    border-color: var(--color-acento);
+    box-shadow: 0 0 10px rgba(100, 255, 218, 0.1);
+}
+
+/* Botón con efecto Neón */
+.boton-enviar-neon {
+    margin: 30px auto 0;
+    padding: 18px 40px;
+    background: transparent;
+    border: 1px solid var(--color-acento);
+    color: var(--color-acento);
+    font-family: monospace;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transicion-suave);
+}
+
+.boton-enviar-neon:hover {
+    background: rgba(100, 255, 218, 0.1);
+    box-shadow: 0 0 20px rgba(100, 255, 218, 0.2);
+    transform: translateY(-3px);
+}
+
+/* --- ESTADOS DE ENVÍO --- */
+.estado-envio {
+    margin-top: 20px;
+    font-family: monospace;
+    font-size: 14px;
+    min-height: 20px;
+    transition: all 0.3s ease;
+}
+
+.estado-envio.exito {
+    color: var(--color-acento);
+}
+
+.estado-envio.error {
+    color: #ff6464;
+}
+
+/* --- ESTILOS ADICIONALES PARA WHATSAPP --- */
+.contenedor-whatsapp {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.texto-separador {
+    font-size: 13px;
+    color: var(--color-texto-parrafos);
+    font-family: monospace;
+    opacity: 0.6;
+}
+
+.enlace-whatsapp {
+    color: var(--color-texto-parrafos);
+    transition: var(--transicion-suave);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.enlace-whatsapp:hover {
+    color: #25D366; /* Verde oficial WhatsApp */
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px rgba(37, 211, 102, 0.3));
+}
+
+.svg-whatsapp {
+    width: 35px;
+    height: 35px;
+}

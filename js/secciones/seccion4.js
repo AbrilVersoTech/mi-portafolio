@@ -1,6 +1,6 @@
 /**
  * Renderiza la Sección 04: Contacto.
- * Corrección: Envío vía FormData para evitar CORS y reactivación de dominio.
+ * Solución Definitiva: Envío vía POST tradicional para evitar errores de CORS en producción.
  */
 const renderizarContacto = (idContenedor) => {
     const contenedor = document.getElementById(idContenedor);
@@ -29,16 +29,21 @@ const renderizarContacto = (idContenedor) => {
                         Actualmente estoy en busca de nuevas oportunidades como <strong>Ingeniero en TI</strong> o <strong>Desarrollador Full-Stack</strong>. Si tienes alguna pregunta, ¡mi bandeja de entrada siempre está abierta!
                     </p>
 
-                    <form class="formulario-contacto" id="form-contacto">
+                    <form class="formulario-contacto" 
+                          id="form-contacto" 
+                          action="https://formsubmit.co/9d97e96935e067fb748eaade356aeee0" 
+                          method="POST">
+                        
+                        <input type="hidden" name="_next" value="https://portafolio.abrilverso.com">
                         <input type="hidden" name="_captcha" value="false">
                         <input type="hidden" name="_template" value="table">
                         
                         <div class="grupo-input">
-                            <input type="text" id="nombre" placeholder="Tu nombre" required>
-                            <input type="email" id="email" placeholder="Tu correo" required>
+                            <input type="text" name="name" id="nombre" placeholder="Tu nombre" required>
+                            <input type="email" name="email" id="email" placeholder="Tu correo" required>
                         </div>
-                        <input type="text" id="asunto" placeholder="Asunto" required>
-                        <textarea id="mensaje" placeholder="Tu mensaje..." rows="5" required></textarea>
+                        <input type="text" name="_subject" id="asunto" placeholder="Asunto" required>
+                        <textarea name="message" id="mensaje" placeholder="Tu mensaje..." rows="5" required></textarea>
                         
                         <button type="submit" class="boton-enviar-neon" id="btn-enviar">
                             <span class="btn-texto">Enviar Mensaje</span>
@@ -66,54 +71,16 @@ const renderizarContacto = (idContenedor) => {
     contenedor.innerHTML = contenido;
 
     const formulario = document.getElementById('form-contacto');
-    const status = document.getElementById('form-status');
     const btnTexto = document.querySelector('.btn-texto');
 
     if (formulario) {
-        formulario.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
+        formulario.addEventListener('submit', () => {
+            // Feedback visual antes de la redirección
             btnTexto.innerText = "Enviando...";
-            formulario.style.pointerEvents = "none";
-            formulario.style.opacity = "0.7";
-
-            // Implementación de FormData para simplificar la petición y evitar preflight CORS
-            const data = new FormData();
-            data.append('Nombre', document.getElementById('nombre').value);
-            data.append('Email', document.getElementById('email').value);
-            data.append('Asunto', document.getElementById('asunto').value);
-            data.append('Mensaje', document.getElementById('mensaje').value);
-
-            try {
-                // Usamos el correo directamente para la reactivación en el nuevo dominio del VPS
-                const response = await fetch("https://formsubmit.co/ajax/abrildiazdiego2017@gmail.com", {
-                    method: "POST",
-                    body: data,
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    status.innerHTML = "¡Mensaje enviado con éxito!";
-                    status.className = "estado-envio exito";
-                    formulario.reset();
-                } else {
-                    throw new Error();
-                }
-            } catch (error) {
-                status.innerHTML = "Ocurrió un error. Inténtalo de nuevo.";
-                status.className = "estado-envio error";
-            } finally {
-                btnTexto.innerText = "Enviar Mensaje";
-                formulario.style.pointerEvents = "auto";
-                formulario.style.opacity = "1";
-                
-                setTimeout(() => {
-                    status.innerHTML = "";
-                    status.className = "estado-envio";
-                }, 5000);
-            }
+            const boton = btnTexto.parentElement;
+            boton.style.opacity = "0.7";
+            boton.style.cursor = "not-allowed";
+            // Nota: Aquí no usamos e.preventDefault() para permitir que el POST navegue
         });
     }
 };

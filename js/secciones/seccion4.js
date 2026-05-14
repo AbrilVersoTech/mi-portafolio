@@ -1,12 +1,12 @@
 /**
  * Renderiza la Sección 04: Contacto.
- * Corrección: Icono oficial de WhatsApp y mensaje estructurado por invitación.
+ * Corrección: Envío vía FormData para evitar CORS y reactivación de dominio.
  */
 const renderizarContacto = (idContenedor) => {
     const contenedor = document.getElementById(idContenedor);
     if (!contenedor) return;
 
-    // Mensaje de WhatsApp estructurado de forma amable y profesional
+    // Mensaje de WhatsApp estructurado
     const mensajeWA = encodeURIComponent(
         "¡Hola Diego! Me interesa tu perfil profesional y me gustaría ponerme en contacto.\n\n" +
         "Mis datos son:\n" +
@@ -34,11 +34,11 @@ const renderizarContacto = (idContenedor) => {
                         <input type="hidden" name="_template" value="table">
                         
                         <div class="grupo-input">
-                            <input type="text" name="name" id="nombre" placeholder="Tu nombre" required>
-                            <input type="email" name="email" id="email" placeholder="Tu correo" required>
+                            <input type="text" id="nombre" placeholder="Tu nombre" required>
+                            <input type="email" id="email" placeholder="Tu correo" required>
                         </div>
-                        <input type="text" name="_subject" id="asunto" placeholder="Asunto" required>
-                        <textarea name="message" id="mensaje" placeholder="Tu mensaje..." rows="5" required></textarea>
+                        <input type="text" id="asunto" placeholder="Asunto" required>
+                        <textarea id="mensaje" placeholder="Tu mensaje..." rows="5" required></textarea>
                         
                         <button type="submit" class="boton-enviar-neon" id="btn-enviar">
                             <span class="btn-texto">Enviar Mensaje</span>
@@ -77,21 +77,21 @@ const renderizarContacto = (idContenedor) => {
             formulario.style.pointerEvents = "none";
             formulario.style.opacity = "0.7";
 
-            const formData = {
-                Nombre: document.getElementById('nombre').value,
-                Email: document.getElementById('email').value,
-                Asunto: document.getElementById('asunto').value,
-                Mensaje: document.getElementById('mensaje').value
-            };
+            // Implementación de FormData para simplificar la petición y evitar preflight CORS
+            const data = new FormData();
+            data.append('Nombre', document.getElementById('nombre').value);
+            data.append('Email', document.getElementById('email').value);
+            data.append('Asunto', document.getElementById('asunto').value);
+            data.append('Mensaje', document.getElementById('mensaje').value);
 
             try {
-                const response = await fetch("https://formsubmit.co/ajax/9d97e96935e067fb748eaade356aeee0", {
+                // Usamos el correo directamente para la reactivación en el nuevo dominio del VPS
+                const response = await fetch("https://formsubmit.co/ajax/abrildiazdiego2017@gmail.com", {
                     method: "POST",
-                    headers: { 
-                        'Content-Type': 'application/json',
+                    body: data,
+                    headers: {
                         'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
+                    }
                 });
 
                 if (response.ok) {

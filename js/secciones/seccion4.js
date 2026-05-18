@@ -1,6 +1,6 @@
 /**
  * Renderiza la Sección 04: Contacto.
- * Solución Definitiva: Envío vía POST tradicional para evitar errores de CORS en producción.
+ * Envio local contra el servidor del proyecto, sin base de datos.
  */
 const renderizarContacto = (idContenedor) => {
     const contenedor = document.getElementById(idContenedor);
@@ -29,15 +29,10 @@ const renderizarContacto = (idContenedor) => {
                         Actualmente estoy en busca de nuevas oportunidades como <strong>Ingeniero en TI</strong> o <strong>Desarrollador Full-Stack</strong>. Si tienes alguna pregunta, ¡mi bandeja de entrada siempre está abierta!
                     </p>
 
-                    <form class="formulario-contacto" 
-                          id="form-contacto" 
-                          action="https://formsubmit.co/9d97e96935e067fb748eaade356aeee0" 
+                    <form class="formulario-contacto"
+                          id="form-contacto"
+                          action="/api/mensajes"
                           method="POST">
-                        
-                        <input type="hidden" name="_next" value="https://portafolio.abrilverso.com">
-                        <input type="hidden" name="_captcha" value="false">
-                        <input type="hidden" name="_template" value="table">
-                        
                         <div class="grupo-input">
                             <input type="text" name="name" id="nombre" placeholder="Tu nombre" required>
                             <input type="email" name="email" id="email" placeholder="Tu correo" required>
@@ -72,15 +67,50 @@ const renderizarContacto = (idContenedor) => {
 
     const formulario = document.getElementById('form-contacto');
     const btnTexto = document.querySelector('.btn-texto');
+    const estadoEnvio = document.getElementById('form-status');
+    const botonEnviar = document.getElementById('btn-enviar');
+
+    const mostrarEstado = (mensaje, tipo) => {
+        if (!estadoEnvio) return;
+        estadoEnvio.textContent = mensaje;
+        estadoEnvio.className = `estado-envio ${tipo}`;
+    };
+
+    const bloquearEnvio = (bloqueado) => {
+        if (!botonEnviar || !btnTexto) return;
+        botonEnviar.disabled = bloqueado;
+        botonEnviar.style.opacity = bloqueado ? "0.7" : "1";
+        botonEnviar.style.cursor = bloqueado ? "not-allowed" : "pointer";
+        btnTexto.innerText = bloqueado ? "Enviando..." : "Enviar Mensaje";
+    };
 
     if (formulario) {
-        formulario.addEventListener('submit', () => {
-            // Feedback visual antes de la redirección
-            btnTexto.innerText = "Enviando...";
-            const boton = btnTexto.parentElement;
-            boton.style.opacity = "0.7";
-            boton.style.cursor = "not-allowed";
-            // Nota: Aquí no usamos e.preventDefault() para permitir que el POST navegue
+        formulario.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            bloquearEnvio(true);
+            mostrarEstado("", "");
+
+            try {
+                const datos = Object.fromEntries(new FormData(formulario).entries());
+                const respuesta = await fetch(formulario.action, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+
+                const resultado = await respuesta.json().catch(() => ({}));
+                if (!respuesta.ok) {
+                    throw new Error(resultado.error || 'No se pudo enviar el mensaje.');
+                }
+
+                formulario.reset();
+                mostrarEstado('Mensaje enviado correctamente. Gracias por escribir.', 'exito');
+            } catch (error) {
+                console.error('Error enviando formulario:', error);
+                mostrarEstado('No se pudo enviar el mensaje. Intenta de nuevo en unos segundos.', 'error');
+            } finally {
+                bloquearEnvio(false);
+            }
         });
     }
 };

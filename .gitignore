@@ -1,6 +1,3 @@
-Dockerfile
-.git
-.dockerignore
 mensajes-locales/
 servidor-local.log
 servidor-local.err.log

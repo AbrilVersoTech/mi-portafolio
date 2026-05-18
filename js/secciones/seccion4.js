@@ -104,10 +104,10 @@ const renderizarContacto = (idContenedor) => {
                 }
 
                 formulario.reset();
-                mostrarEstado('Mensaje enviado correctamente. Gracias por escribir.', 'exito');
+                mostrarEstado(resultado.mensaje || 'Mensaje enviado al correo correctamente.', 'exito');
             } catch (error) {
                 console.error('Error enviando formulario:', error);
-                mostrarEstado('No se pudo enviar el mensaje. Intenta de nuevo en unos segundos.', 'error');
+                mostrarEstado(error.message || 'No se pudo enviar el mensaje. Intenta de nuevo en unos segundos.', 'error');
             } finally {
                 bloquearEnvio(false);
             }

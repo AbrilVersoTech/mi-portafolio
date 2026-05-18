@@ -1,4 +1,6 @@
-FROM nginx:alpine
-# Copia el contenido de tu portafolio a la ruta de Nginx
-COPY . /usr/share/nginx/html
+FROM node:24-alpine
+WORKDIR /app
+COPY . .
+ENV PORT=80
 EXPOSE 80
+CMD ["node", "servidor-local.js"]

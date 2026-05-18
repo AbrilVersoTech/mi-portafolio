@@ -1,12 +1,46 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const tls = require('tls');
 const { URL } = require('url');
+
+const cargarEnvLocal = () => {
+    const rutaEnv = path.join(__dirname, '.env');
+    if (!fs.existsSync(rutaEnv)) return;
+
+    const lineas = fs.readFileSync(rutaEnv, 'utf8').split(/\r?\n/);
+    lineas.forEach((linea) => {
+        const limpia = linea.trim();
+        if (!limpia || limpia.startsWith('#') || !limpia.includes('=')) return;
+
+        const indice = limpia.indexOf('=');
+        const clave = limpia.slice(0, indice).trim();
+        const valor = limpia.slice(indice + 1).trim().replace(/^["']|["']$/g, '');
+
+        if (clave && process.env[clave] === undefined) {
+            process.env[clave] = valor;
+        }
+    });
+};
+
+cargarEnvLocal();
 
 const PUERTO = Number(process.env.PORT || 3000);
 const RAIZ_PUBLICA = __dirname;
 const CARPETA_MENSAJES = path.join(__dirname, 'mensajes-locales');
 const ARCHIVO_MENSAJES = path.join(CARPETA_MENSAJES, 'mensajes.jsonl');
+const CORREO_DESTINO = process.env.MAIL_TO || 'abrldzdisrac0n2@gmail.com';
+const normalizarSecreto = (valor) => {
+    const secreto = String(valor || '').replace(/\s+/g, '').trim();
+    return secreto === 'TU_APP_PASSWORD_DE_GMAIL' ? '' : secreto;
+};
+const SMTP_CONFIG = {
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: Number(process.env.SMTP_PORT || 465),
+    user: process.env.SMTP_USER || '',
+    pass: normalizarSecreto(process.env.SMTP_PASS),
+    from: process.env.MAIL_FROM || process.env.SMTP_USER || ''
+};
 
 const TIPOS_MIME = {
     '.html': 'text/html; charset=utf-8',
@@ -58,6 +92,154 @@ const parsearCuerpo = (cuerpo, tipoContenido) => {
     return Object.fromEntries(parametros.entries());
 };
 
+const escaparHtml = (texto) => {
+    return String(texto || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+};
+
+const crearCorreo = (mensaje) => {
+    const asunto = `Portafolio: ${mensaje.asunto}`;
+    const html = `
+        <h2>Nuevo mensaje desde el portafolio</h2>
+        <p><strong>Nombre:</strong> ${escaparHtml(mensaje.nombre)}</p>
+        <p><strong>Correo:</strong> ${escaparHtml(mensaje.email)}</p>
+        <p><strong>Asunto:</strong> ${escaparHtml(mensaje.asunto)}</p>
+        <p><strong>Fecha:</strong> ${escaparHtml(mensaje.fecha)}</p>
+        <hr>
+        <p>${escaparHtml(mensaje.mensaje).replace(/\n/g, '<br>')}</p>
+    `;
+    const texto = [
+        'Nuevo mensaje desde el portafolio',
+        `Nombre: ${mensaje.nombre}`,
+        `Correo: ${mensaje.email}`,
+        `Asunto: ${mensaje.asunto}`,
+        `Fecha: ${mensaje.fecha}`,
+        '',
+        mensaje.mensaje
+    ].join('\n');
+
+    return { asunto, html, texto };
+};
+
+const leerRespuestaSmtp = (socket) => new Promise((resolve, reject) => {
+    let datos = '';
+
+    const limpiar = () => {
+        socket.off('data', recibir);
+        socket.off('error', fallar);
+    };
+
+    const fallar = (error) => {
+        limpiar();
+        reject(error);
+    };
+
+    const recibir = (fragmento) => {
+        datos += fragmento.toString('utf8');
+        const lineas = datos.trimEnd().split(/\r?\n/);
+        const ultima = lineas[lineas.length - 1] || '';
+
+        if (/^\d{3} /.test(ultima)) {
+            limpiar();
+            resolve({ codigo: Number(ultima.slice(0, 3)), datos });
+        }
+    };
+
+    socket.on('data', recibir);
+    socket.on('error', fallar);
+});
+
+const comandoSmtp = async (socket, comando, codigosValidos) => {
+    socket.write(`${comando}\r\n`);
+    const respuesta = await leerRespuestaSmtp(socket);
+
+    if (!codigosValidos.includes(respuesta.codigo)) {
+        throw new Error(`SMTP rechazo "${comando.split(' ')[0]}": ${respuesta.datos.trim()}`);
+    }
+
+    return respuesta;
+};
+
+const enviarCorreoSmtp = (mensaje) => new Promise((resolve, reject) => {
+    if (!SMTP_CONFIG.user || !SMTP_CONFIG.pass || !SMTP_CONFIG.from) {
+        const error = new Error('SMTP no configurado. Define SMTP_USER y SMTP_PASS.');
+        error.tipo = 'SMTP_CONFIG';
+        reject(error);
+        return;
+    }
+
+    const correo = crearCorreo(mensaje);
+    const socket = tls.connect({
+        host: SMTP_CONFIG.host,
+        port: SMTP_CONFIG.port,
+        servername: SMTP_CONFIG.host,
+        rejectUnauthorized: true
+    });
+
+    socket.setEncoding('utf8');
+    socket.setTimeout(20000);
+
+    socket.once('secureConnect', async () => {
+        try {
+            await leerRespuestaSmtp(socket);
+            await comandoSmtp(socket, `EHLO ${SMTP_CONFIG.host}`, [250]);
+            await comandoSmtp(socket, 'AUTH LOGIN', [334]);
+            await comandoSmtp(socket, Buffer.from(SMTP_CONFIG.user).toString('base64'), [334]);
+            await comandoSmtp(socket, Buffer.from(SMTP_CONFIG.pass).toString('base64'), [235]);
+            await comandoSmtp(socket, `MAIL FROM:<${SMTP_CONFIG.from}>`, [250]);
+            await comandoSmtp(socket, `RCPT TO:<${CORREO_DESTINO}>`, [250, 251]);
+            await comandoSmtp(socket, 'DATA', [354]);
+
+            const cuerpo = [
+                `From: Portafolio Abril <${SMTP_CONFIG.from}>`,
+                `To: ${CORREO_DESTINO}`,
+                `Reply-To: ${mensaje.nombre} <${mensaje.email}>`,
+                `Subject: ${correo.asunto}`,
+                'MIME-Version: 1.0',
+                'Content-Type: multipart/alternative; boundary="PORTAFOLIO_ABRIL"',
+                '',
+                '--PORTAFOLIO_ABRIL',
+                'Content-Type: text/plain; charset=UTF-8',
+                '',
+                correo.texto,
+                '',
+                '--PORTAFOLIO_ABRIL',
+                'Content-Type: text/html; charset=UTF-8',
+                '',
+                correo.html,
+                '',
+                '--PORTAFOLIO_ABRIL--',
+                '.'
+            ].join('\r\n');
+
+            await comandoSmtp(socket, cuerpo, [250]);
+            await comandoSmtp(socket, 'QUIT', [221]);
+            socket.end();
+            resolve();
+        } catch (error) {
+            socket.destroy();
+            error.tipo = 'SMTP_ENVIO';
+            reject(error);
+        }
+    });
+
+    socket.once('timeout', () => {
+        socket.destroy();
+        const error = new Error('Tiempo de espera agotado conectando con SMTP.');
+        error.tipo = 'SMTP_ENVIO';
+        reject(error);
+    });
+
+    socket.once('error', (error) => {
+        error.tipo = 'SMTP_ENVIO';
+        reject(error);
+    });
+});
+
 const manejarMensaje = async (peticion, respuesta) => {
     try {
         const cuerpo = await leerCuerpo(peticion);
@@ -83,9 +265,26 @@ const manejarMensaje = async (peticion, respuesta) => {
         fs.mkdirSync(CARPETA_MENSAJES, { recursive: true });
         fs.appendFileSync(ARCHIVO_MENSAJES, `${JSON.stringify(mensaje)}\n`, 'utf8');
 
-        return enviarJson(respuesta, 200, { ok: true, mensaje: 'Mensaje recibido.' });
+        await enviarCorreoSmtp(mensaje);
+
+        return enviarJson(respuesta, 200, { ok: true, mensaje: 'Mensaje enviado al correo.' });
     } catch (error) {
         console.error('Error recibiendo mensaje:', error);
+
+        if (error.tipo === 'SMTP_CONFIG') {
+            return enviarJson(respuesta, 503, {
+                ok: false,
+                error: 'El mensaje se guardo, pero falta configurar SMTP para enviarlo al correo.'
+            });
+        }
+
+        if (error.tipo === 'SMTP_ENVIO') {
+            return enviarJson(respuesta, 502, {
+                ok: false,
+                error: 'El mensaje se guardo, pero Gmail rechazo el envio SMTP. Revisa SMTP_USER y SMTP_PASS.'
+            });
+        }
+
         return enviarJson(respuesta, 500, { ok: false, error: 'Error interno del servidor.' });
     }
 };
@@ -144,4 +343,10 @@ servidor.on('error', (error) => {
 servidor.listen(PUERTO, () => {
     console.log(`Portafolio local en http://localhost:${PUERTO}`);
     console.log(`Mensajes guardados en ${ARCHIVO_MENSAJES}`);
+    console.log(`Correo destino: ${CORREO_DESTINO}`);
+    console.log(
+        SMTP_CONFIG.user && SMTP_CONFIG.pass
+            ? `SMTP activo: ${SMTP_CONFIG.user}`
+            : 'SMTP pendiente: configura SMTP_USER y SMTP_PASS'
+    );
 });

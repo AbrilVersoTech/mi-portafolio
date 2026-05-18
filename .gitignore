@@ -1,3 +1,4 @@
 mensajes-locales/
 servidor-local.log
 servidor-local.err.log
+.env

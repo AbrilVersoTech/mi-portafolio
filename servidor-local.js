@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const net = require('net');
 const tls = require('tls');
 const { URL } = require('url');
 
@@ -36,7 +37,7 @@ const normalizarSecreto = (valor) => {
 };
 const SMTP_CONFIG = {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: Number(process.env.SMTP_PORT || 465),
+    port: Number(process.env.SMTP_PORT || 587),
     user: process.env.SMTP_USER || '',
     pass: normalizarSecreto(process.env.SMTP_PASS),
     from: process.env.MAIL_FROM || process.env.SMTP_USER || ''
@@ -164,6 +165,86 @@ const comandoSmtp = async (socket, comando, codigosValidos) => {
     return respuesta;
 };
 
+const marcarErrorSmtp = (error) => {
+    error.tipo = 'SMTP_ENVIO';
+    return error;
+};
+
+const conectarSmtpSeguro = () => new Promise((resolve, reject) => {
+    const rechazar = (error) => reject(marcarErrorSmtp(error));
+
+    if (SMTP_CONFIG.port === 465) {
+        const socket = tls.connect({
+            host: SMTP_CONFIG.host,
+            port: SMTP_CONFIG.port,
+            servername: SMTP_CONFIG.host,
+            rejectUnauthorized: true
+        });
+
+        socket.setEncoding('utf8');
+        socket.setTimeout(20000);
+
+        socket.once('secureConnect', async () => {
+            try {
+                await leerRespuestaSmtp(socket);
+                resolve(socket);
+            } catch (error) {
+                socket.destroy();
+                rechazar(error);
+            }
+        });
+
+        socket.once('timeout', () => {
+            socket.destroy();
+            rechazar(new Error('Tiempo de espera agotado conectando con SMTP.'));
+        });
+        socket.once('error', rechazar);
+        return;
+    }
+
+    const socket = net.createConnection({
+        host: SMTP_CONFIG.host,
+        port: SMTP_CONFIG.port,
+        timeout: 20000
+    });
+
+    socket.setEncoding('utf8');
+
+    socket.once('connect', async () => {
+        try {
+            await leerRespuestaSmtp(socket);
+            await comandoSmtp(socket, `EHLO ${SMTP_CONFIG.host}`, [250]);
+            await comandoSmtp(socket, 'STARTTLS', [220]);
+            socket.removeAllListeners('timeout');
+            socket.removeAllListeners('error');
+
+            const socketSeguro = tls.connect({
+                socket,
+                servername: SMTP_CONFIG.host,
+                rejectUnauthorized: true
+            });
+
+            socketSeguro.setEncoding('utf8');
+            socketSeguro.setTimeout(20000);
+            socketSeguro.once('secureConnect', () => resolve(socketSeguro));
+            socketSeguro.once('timeout', () => {
+                socketSeguro.destroy();
+                rechazar(new Error('Tiempo de espera agotado conectando con SMTP seguro.'));
+            });
+            socketSeguro.once('error', rechazar);
+        } catch (error) {
+            socket.destroy();
+            rechazar(error);
+        }
+    });
+
+    socket.once('timeout', () => {
+        socket.destroy();
+        rechazar(new Error('Tiempo de espera agotado conectando con SMTP.'));
+    });
+    socket.once('error', rechazar);
+});
+
 const enviarCorreoSmtp = (mensaje) => new Promise((resolve, reject) => {
     if (!SMTP_CONFIG.user || !SMTP_CONFIG.pass || !SMTP_CONFIG.from) {
         const error = new Error('SMTP no configurado. Define SMTP_USER y SMTP_PASS.');
@@ -173,71 +254,49 @@ const enviarCorreoSmtp = (mensaje) => new Promise((resolve, reject) => {
     }
 
     const correo = crearCorreo(mensaje);
-    const socket = tls.connect({
-        host: SMTP_CONFIG.host,
-        port: SMTP_CONFIG.port,
-        servername: SMTP_CONFIG.host,
-        rejectUnauthorized: true
-    });
+    conectarSmtpSeguro()
+        .then(async (socket) => {
+            try {
+                await comandoSmtp(socket, `EHLO ${SMTP_CONFIG.host}`, [250]);
+                await comandoSmtp(socket, 'AUTH LOGIN', [334]);
+                await comandoSmtp(socket, Buffer.from(SMTP_CONFIG.user).toString('base64'), [334]);
+                await comandoSmtp(socket, Buffer.from(SMTP_CONFIG.pass).toString('base64'), [235]);
+                await comandoSmtp(socket, `MAIL FROM:<${SMTP_CONFIG.from}>`, [250]);
+                await comandoSmtp(socket, `RCPT TO:<${CORREO_DESTINO}>`, [250, 251]);
+                await comandoSmtp(socket, 'DATA', [354]);
 
-    socket.setEncoding('utf8');
-    socket.setTimeout(20000);
+                const cuerpo = [
+                    `From: Portafolio Abril <${SMTP_CONFIG.from}>`,
+                    `To: ${CORREO_DESTINO}`,
+                    `Reply-To: ${mensaje.nombre} <${mensaje.email}>`,
+                    `Subject: ${correo.asunto}`,
+                    'MIME-Version: 1.0',
+                    'Content-Type: multipart/alternative; boundary="PORTAFOLIO_ABRIL"',
+                    '',
+                    '--PORTAFOLIO_ABRIL',
+                    'Content-Type: text/plain; charset=UTF-8',
+                    '',
+                    correo.texto,
+                    '',
+                    '--PORTAFOLIO_ABRIL',
+                    'Content-Type: text/html; charset=UTF-8',
+                    '',
+                    correo.html,
+                    '',
+                    '--PORTAFOLIO_ABRIL--',
+                    '.'
+                ].join('\r\n');
 
-    socket.once('secureConnect', async () => {
-        try {
-            await leerRespuestaSmtp(socket);
-            await comandoSmtp(socket, `EHLO ${SMTP_CONFIG.host}`, [250]);
-            await comandoSmtp(socket, 'AUTH LOGIN', [334]);
-            await comandoSmtp(socket, Buffer.from(SMTP_CONFIG.user).toString('base64'), [334]);
-            await comandoSmtp(socket, Buffer.from(SMTP_CONFIG.pass).toString('base64'), [235]);
-            await comandoSmtp(socket, `MAIL FROM:<${SMTP_CONFIG.from}>`, [250]);
-            await comandoSmtp(socket, `RCPT TO:<${CORREO_DESTINO}>`, [250, 251]);
-            await comandoSmtp(socket, 'DATA', [354]);
-
-            const cuerpo = [
-                `From: Portafolio Abril <${SMTP_CONFIG.from}>`,
-                `To: ${CORREO_DESTINO}`,
-                `Reply-To: ${mensaje.nombre} <${mensaje.email}>`,
-                `Subject: ${correo.asunto}`,
-                'MIME-Version: 1.0',
-                'Content-Type: multipart/alternative; boundary="PORTAFOLIO_ABRIL"',
-                '',
-                '--PORTAFOLIO_ABRIL',
-                'Content-Type: text/plain; charset=UTF-8',
-                '',
-                correo.texto,
-                '',
-                '--PORTAFOLIO_ABRIL',
-                'Content-Type: text/html; charset=UTF-8',
-                '',
-                correo.html,
-                '',
-                '--PORTAFOLIO_ABRIL--',
-                '.'
-            ].join('\r\n');
-
-            await comandoSmtp(socket, cuerpo, [250]);
-            await comandoSmtp(socket, 'QUIT', [221]);
-            socket.end();
-            resolve();
-        } catch (error) {
-            socket.destroy();
-            error.tipo = 'SMTP_ENVIO';
-            reject(error);
-        }
-    });
-
-    socket.once('timeout', () => {
-        socket.destroy();
-        const error = new Error('Tiempo de espera agotado conectando con SMTP.');
-        error.tipo = 'SMTP_ENVIO';
-        reject(error);
-    });
-
-    socket.once('error', (error) => {
-        error.tipo = 'SMTP_ENVIO';
-        reject(error);
-    });
+                await comandoSmtp(socket, cuerpo, [250]);
+                await comandoSmtp(socket, 'QUIT', [221]);
+                socket.end();
+                resolve();
+            } catch (error) {
+                socket.destroy();
+                reject(marcarErrorSmtp(error));
+            }
+        })
+        .catch(reject);
 });
 
 const manejarMensaje = async (peticion, respuesta) => {
